@@ -1,0 +1,108 @@
+/*
+  $Id: $
+  @file GcrClient.java
+  @brief Contains the GcrClient.java class
+
+  @author Rahul Singh [rsingh]
+  Copyright (c) 2013, Distelli Inc., All Rights Reserved.
+*/
+package com.distelli.gcr;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
+import com.distelli.gcr.models.*;
+import com.distelli.gcr.auth.*;
+import com.distelli.gcr.http.*;
+import com.distelli.gcr.serializers.*;
+import com.distelli.gcr.exceptions.*;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
+public class GcrClient
+{
+    private static final Logger log = Logger.getLogger(GcrClient.class);
+
+    private GcrHttpClient _httpClient = null;
+
+    public GcrClient(GcrCredentials gcrCredentials)
+    {
+        _httpClient = new GcrHttpClient(gcrCredentials);
+        _httpClient.setEndpoint("https://gcr.io");
+    }
+
+    public List<GcrRepository> listRepositories(GcrIterator iterator)
+        throws IOException, GcrException
+    {
+        GcrHttpClient.RequestBuilder requestBuilder = _httpClient.GET()
+        .withPath("v2/_catalog");
+
+        if(iterator != null)
+        {
+            requestBuilder.withQueryParam("n", ""+iterator.getPageSize());
+            requestBuilder.withQueryParam("last", iterator.getMarker());
+        }
+
+        GcrHttpResponse httpResponse = requestBuilder.execute();
+        if(iterator != null)
+        {
+            String linkHeader = httpResponse.getResponseHeader("Link");
+            iterator.updateMarker(linkHeader);
+        }
+        int httpStatusCode = httpResponse.getHttpStatusCode();
+        JsonNode responseJson = httpResponse.getResponseAsJsonNode();
+        if(httpStatusCode / 100 != 2)
+        {
+            List<GcrError> errors = GcrErrorSerializer.deserialize(responseJson);
+            throw(new GcrException(errors));
+        }
+
+        return GcrRepositorySerializer.deserializeList(responseJson);
+    }
+
+    public List<GcrImageTag> listImageTags(GcrRepository repository,
+                                           GcrIterator iterator)
+        throws IOException, GcrException
+    {
+        return listImageTags(String.format("%s/%s",
+                                           repository.getProjectName(),
+                                           repository.getRepositoryName()),
+                             iterator);
+    }
+
+    public List<GcrImageTag> listImageTags(String repository, GcrIterator iterator)
+        throws IOException, GcrException
+    {
+        GcrHttpClient.RequestBuilder requestBuilder = _httpClient.GET()
+        .withPath("/v2/"+repository+"/tags/list");
+
+        if(iterator != null)
+        {
+            requestBuilder.withQueryParam("n", ""+iterator.getPageSize());
+            requestBuilder.withQueryParam("last", iterator.getMarker());
+        }
+
+        GcrHttpResponse httpResponse = requestBuilder.execute();
+        if(iterator != null)
+        {
+            String linkHeader = httpResponse.getResponseHeader("Link");
+            iterator.updateMarker(linkHeader);
+        }
+        int httpStatusCode = httpResponse.getHttpStatusCode();
+        JsonNode responseJson = httpResponse.getResponseAsJsonNode();
+        if(httpStatusCode / 100 != 2)
+        {
+            List<GcrError> errors = GcrErrorSerializer.deserialize(responseJson);
+            throw(new GcrException(errors));
+        }
+
+        return GcrImageTagSerializer.deserializeList(responseJson);
+    }
+}

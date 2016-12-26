@@ -1,0 +1,17 @@
+*.class
+*~
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+target/**
+*/target/**
+node_modules
+public/*
+
+.DS_Store
+*/.DS_Store
+EuropaConfig.json
+EuropaTestConfig.json
