@@ -12,12 +12,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
 import com.distelli.gcr.models.*;
 import com.distelli.gcr.auth.*;
 import com.distelli.gcr.http.*;
@@ -25,17 +19,21 @@ import com.distelli.gcr.serializers.*;
 import com.distelli.gcr.exceptions.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GcrClient
 {
-    private static final Logger log = Logger.getLogger(GcrClient.class);
+    private static final Logger log = LoggerFactory.getLogger(GcrClient.class);
 
     private GcrHttpClient _httpClient = null;
 
-    public GcrClient(GcrCredentials gcrCredentials)
+    public GcrClient(GcrCredentials gcrCredentials, GcrRegion gcrRegion)
     {
         _httpClient = new GcrHttpClient(gcrCredentials);
-        _httpClient.setEndpoint("https://gcr.io");
+        if(gcrRegion == null)
+            gcrRegion = GcrRegion.DEFAULT;
+        _httpClient.setEndpoint(gcrRegion.getHttpsEndpoint());
     }
 
     public List<GcrRepository> listRepositories(GcrIterator iterator)

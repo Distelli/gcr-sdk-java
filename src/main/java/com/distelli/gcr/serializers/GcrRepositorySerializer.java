@@ -11,13 +11,15 @@ package com.distelli.gcr.serializers;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import com.distelli.gcr.models.*;
 import com.fasterxml.jackson.databind.JsonNode;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class GcrRepositorySerializer extends GcrSerializer
 {
-    private static final Logger log = Logger.getLogger(GcrRepositorySerializer.class);
+    private static final Logger log = LoggerFactory.getLogger(GcrRepositorySerializer.class);
 
     public GcrRepositorySerializer()
     {

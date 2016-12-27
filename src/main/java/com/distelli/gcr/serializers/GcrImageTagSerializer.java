@@ -15,13 +15,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
 import com.distelli.gcr.models.*;
 import com.fasterxml.jackson.databind.JsonNode;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class GcrImageTagSerializer extends GcrSerializer
 {
-    private static final Logger log = Logger.getLogger(GcrImageTagSerializer.class);
+    private static final Logger log = LoggerFactory.getLogger(GcrImageTagSerializer.class);
 
     public GcrImageTagSerializer()
     {

@@ -14,16 +14,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.http.Header;
-import org.apache.log4j.Logger;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpRequestBase;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class GcrHttpResponse
 {
-    private static final Logger log = Logger.getLogger(GcrHttpResponse.class);
+    private static final Logger log = LoggerFactory.getLogger(GcrHttpResponse.class);
     private HttpResponse _httpResponse = null;
     private HttpRequestBase _httpRequest = null;
     private Map<String, String> _headers = null;

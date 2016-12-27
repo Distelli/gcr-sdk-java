@@ -36,6 +36,11 @@ public class GcrServiceAccountCredentials implements GcrCredentials
         }
     }
 
+    public GcrServiceAccountCredentials(String jsonKey)
+    {
+        this.jsonKey = jsonKey;
+    }
+
     public GcrServiceAccountCredentials(InputStream jsonKey)
         throws GcrAuthException
     {

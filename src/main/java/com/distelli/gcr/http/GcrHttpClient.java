@@ -39,11 +39,13 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.client.HttpClient;
-import org.apache.log4j.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GcrHttpClient implements Closeable
 {
-    private static final Logger log = Logger.getLogger(GcrHttpClient.class);
+    private static final Logger log = LoggerFactory.getLogger(GcrHttpClient.class);
 
     protected CloseableHttpClient _httpClient;
     private GcrCredentials _gcrCredentials;
