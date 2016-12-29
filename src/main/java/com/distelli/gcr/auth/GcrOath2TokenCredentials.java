@@ -8,7 +8,10 @@
 */
 package com.distelli.gcr.auth;
 
-import lombok.*;
+import lombok.Data;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import java.util.Base64;
 
 @Data
