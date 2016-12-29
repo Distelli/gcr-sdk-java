@@ -22,6 +22,11 @@ public enum GcrRegion
         _endpoint = endpoint;
     }
 
+    public String getEndpoint()
+    {
+        return _endpoint;
+    }
+
     public String getHttpsEndpoint()
     {
         return String.format("https://%s", _endpoint);
