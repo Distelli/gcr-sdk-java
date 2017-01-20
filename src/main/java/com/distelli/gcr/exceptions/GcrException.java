@@ -11,7 +11,7 @@ package com.distelli.gcr.exceptions;
 import java.util.List;
 import com.distelli.gcr.models.*;
 
-public class GcrException extends Exception
+public class GcrException extends RuntimeException
 {
     private static final long serialVersionUID = 1L;
     private List<GcrError> _errors;

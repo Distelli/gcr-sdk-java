@@ -27,6 +27,12 @@ public class GcrIterator implements Iterable<GcrIterator>, Iterator<GcrIterator>
 {
     private int pageSize = 100;
     private String marker = null;
+    private boolean isFirstPage = true;
+
+    public GcrIterator pageSize(int pageSize) {
+        this.pageSize = pageSize;
+        return this;
+    }
 
     @Override
     public Iterator<GcrIterator> iterator()
@@ -39,7 +45,7 @@ public class GcrIterator implements Iterable<GcrIterator>, Iterator<GcrIterator>
         //param and set that as the marker
         if(linkHeader == null)
         {
-            marker = null;
+            setMarker(null);
             return;
         }
         String[] parts = linkHeader.split(";");
@@ -59,7 +65,7 @@ public class GcrIterator implements Iterable<GcrIterator>, Iterator<GcrIterator>
                 if(!key.equalsIgnoreCase("last"))
                     continue;
                 String value = URLDecoder.decode(part.substring(index+1), "UTF-8");
-                this.marker = value;
+                setMarker(value);
                 return;
             }
         } catch(UnsupportedEncodingException usee) {
@@ -69,9 +75,14 @@ public class GcrIterator implements Iterable<GcrIterator>, Iterator<GcrIterator>
         }
     }
 
+    public void setMarker(String marker) {
+        this.isFirstPage = false;
+        this.marker = marker;
+    }
+
     @Override
     public boolean hasNext() {
-        return this.marker != null; //TODO: Probably need to check isFirstPage
+        return this.marker != null || isFirstPage;
     }
 
     @Override

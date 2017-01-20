@@ -8,7 +8,7 @@
 */
 package com.distelli.gcr.exceptions;
 
-public class GcrAuthException extends Exception
+public class GcrAuthException extends RuntimeException
 {
     private static final long serialVersionUID = 1L;
     public GcrAuthException()
