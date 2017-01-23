@@ -6,10 +6,15 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 @Data
-@Builder
+@Builder(toBuilder=true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class GcrBlobUpload
 {
-    protected String todo;
+    protected boolean complete;
+    protected String blobLocation;
+    protected String digest;
+    protected String uploadLocation;
+    protected String uploadId;
+    protected long rangeBegin;
 }

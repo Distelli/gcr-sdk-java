@@ -23,6 +23,7 @@ public class GcrException extends RuntimeException
 
     public GcrException(List<GcrError> errors)
     {
+        super(getMessage(errors));
         _errors = errors;
     }
 
@@ -41,16 +42,15 @@ public class GcrException extends RuntimeException
         super(cause);
     }
 
-    @Override
-    public String getMessage()
+    private static String getMessage(List<GcrError> errors)
     {
-        if(_errors == null || _errors.size() == 0)
-            return null;
+        if(errors == null || errors.size() == 0)
+            return "[]";
 
-        GcrError firstError = _errors.get(0);
+        GcrError firstError = errors.get(0);
         String message = "["+firstError.getCode()+"] "+firstError.getMessage();
-        if(_errors.size() > 1)
-            message = message +"("+(_errors.size() - 1)+" more error(s)";
+        if(errors.size() > 1)
+            message = message +"("+(errors.size() - 1)+" more error(s)";
         return message;
     }
 

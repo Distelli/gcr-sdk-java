@@ -11,5 +11,6 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class GcrBlobMeta
 {
-    protected String todo;
+    protected String digest;
+    protected Long length;
 }

@@ -10,6 +10,7 @@ package com.distelli.gcr.serializers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 import com.distelli.gcr.models.*;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -28,14 +29,16 @@ public class GcrErrorSerializer extends GcrSerializer
 
     public static List<GcrError> deserialize(JsonNode jsonNode)
     {
-        List<GcrError> errors = new ArrayList<GcrError>();
         if(jsonNode == null)
-            return errors;
+            return Collections.emptyList();
+        List<GcrError> errors = new ArrayList<GcrError>();
         JsonNode errorsNode = jsonNode.at("/errors");
-        if(errorsNode.isMissingNode())
-            return errors;
         if(!errorsNode.isArray())
-            return errors;
+            return Collections.singletonList(
+                GcrError.builder()
+                .code("UNEXPECTED JsonNode")
+                .message("GOT="+jsonNode)
+                .build());
 
         for(JsonNode objNode : errorsNode) {
             GcrError error = convertValue(objNode, GcrError.class);

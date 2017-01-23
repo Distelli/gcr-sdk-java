@@ -21,4 +21,8 @@ public class GcrRepository
 {
     protected String projectName;
     protected String repositoryName;
+
+    public String getFullName() {
+        return projectName + "/" + repositoryName;
+    }
 }
