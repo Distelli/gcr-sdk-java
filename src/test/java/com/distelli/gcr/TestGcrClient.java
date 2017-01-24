@@ -121,6 +121,8 @@ public class TestGcrClient {
         blobMeta = client.getBlobMeta(repo.getFullName(), digest);
         assertEquals(blobMeta.getDigest(), digest);
         assertEquals(blobMeta.getLength().intValue(), chunk1.length);
+
+        assertTrue(client.deleteBlob(repo.getFullName(), digest));
         
         // THESE ARE UNSUPPORTED in GCR!
         // upload = client.blobUploadChunk(upload, new ByteArrayInputStream(chunk1), (long)chunk1.length);

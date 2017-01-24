@@ -340,7 +340,22 @@ public class GcrClient
     public boolean deleteBlob(String repository, String digest)
         throws IOException, GcrException
     {
-        throw new UnsupportedOperationException();
+
+        Request request = new Request.Builder()
+            .delete(RequestBody.create(null, ""))
+            .url(HttpUrl()
+                 .addPathSegments(repository)
+                 .addPathSegment("blobs")
+                 .addPathSegment(digest)
+                 .build())
+            .build();
+        try ( Response response = _httpClient.newCall(request).execute() ) {
+            if ( response.code() / 100 == 2 ) return true;
+            if ( 404 == response.code() ) return false;
+            throw new GcrException(
+                GcrErrorSerializer.deserialize(
+                    readTree(response.body(), response.code())));
+        }
     }
 
     private static Long parseLong(String str) {
