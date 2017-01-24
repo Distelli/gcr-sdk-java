@@ -8,6 +8,9 @@ import com.distelli.gcr.models.GcrRepository;
 import com.distelli.gcr.models.GcrImageTag;
 import com.distelli.gcr.models.GcrBlobMeta;
 import com.distelli.gcr.models.GcrBlobUpload;
+import com.distelli.gcr.models.GcrManifestMeta;
+import com.distelli.gcr.models.GcrManifestV2Schema2;
+import com.distelli.gcr.models.GcrManifestV2Schema1;
 import com.distelli.gcr.auth.GcrCredentials;
 import com.distelli.gcr.auth.GcrServiceAccountCredentials;
 import java.util.List;
@@ -16,6 +19,7 @@ import java.io.IOException;
 import java.io.File;
 import java.io.ByteArrayInputStream;
 import java.security.MessageDigest;
+import java.util.Arrays;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.xml.bind.DatatypeConverter.printHexBinary;
 
@@ -122,7 +126,28 @@ public class TestGcrClient {
         assertEquals(blobMeta.getDigest(), digest);
         assertEquals(blobMeta.getLength().intValue(), chunk1.length);
 
-        assertTrue(client.deleteBlob(repo.getFullName(), digest));
+        GcrManifestMeta manifestMeta = client.putManifest(
+            repo.getFullName(),
+            "test-gcr-client",
+            GcrManifestV2Schema1.builder()
+            .name(repo.getFullName())
+            .tag("test-gcr-client")
+            .architecture("amd64")
+            .fsLayers(Arrays.asList(
+                          GcrManifestV2Schema1.FSLayerItem.builder()
+                          .blobSum(digest)
+                          .build()))
+            .history(Arrays.asList(
+                         GcrManifestV2Schema1.HistoryItem.builder()
+                         .v1Compatibility("{}")
+                         .build()))
+            .build());
+        assertNotNull(manifestMeta.getLocation());
+        assertNotNull(manifestMeta.getDigest());
+
+        // Can't delete the blob since it is now referenced:
+        //assertTrue(client.deleteBlob(repo.getFullName(), digest));
+
         
         // THESE ARE UNSUPPORTED in GCR!
         // upload = client.blobUploadChunk(upload, new ByteArrayInputStream(chunk1), (long)chunk1.length);

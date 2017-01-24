@@ -32,9 +32,11 @@ import okhttp3.MediaType;
 import okhttp3.ResponseBody;
 import okhttp3.RequestBody;
 import static java.nio.charset.StandardCharsets.ISO_8859_1;
-import com.fasterxml.jackson.core.JsonParser;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 public class GcrClient
 {
@@ -44,6 +46,8 @@ public class GcrClient
 
     static {
         OBJECT_MAPPER.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, true);
+        OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        OBJECT_MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     private OkHttpClient _httpClient;
@@ -352,6 +356,33 @@ public class GcrClient
         try ( Response response = _httpClient.newCall(request).execute() ) {
             if ( response.code() / 100 == 2 ) return true;
             if ( 404 == response.code() ) return false;
+            throw new GcrException(
+                GcrErrorSerializer.deserialize(
+                    readTree(response.body(), response.code())));
+        }
+    }
+
+    // PUT /v2/<name>/manifests/<reference>
+    // reference may be a tag or GcrManifestMeta.digest
+    public GcrManifestMeta putManifest(String repository, String reference, GcrManifest manifest)
+        throws IOException, GcrException
+    {
+        Request request = new Request.Builder()
+            .put(RequestBody.create(MediaType.parse(manifest.getMediaType()),
+                                    OBJECT_MAPPER.writeValueAsBytes(manifest)))
+            .url(HttpUrl()
+                 .addPathSegments(repository)
+                 .addPathSegment("manifests")
+                 .addPathSegment(reference)
+                 .build())
+            .build();
+        try ( Response response = _httpClient.newCall(request).execute() ) {
+            if ( response.code() / 100 == 2 ) {
+                return GcrManifestMeta.builder()
+                    .digest(response.header("Docker-Content-Digest"))
+                    .location(response.header("Location"))
+                    .build();
+            }
             throw new GcrException(
                 GcrErrorSerializer.deserialize(
                     readTree(response.body(), response.code())));
