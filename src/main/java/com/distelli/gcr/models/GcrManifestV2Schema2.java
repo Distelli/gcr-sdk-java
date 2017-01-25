@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 // NOTE: gcr appears to reject this manifest format with INVALID_MANIFEST, perhaps
 // it will be supported in the future?
@@ -18,6 +19,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class GcrManifestV2Schema2 implements GcrManifest
 {
+    private static ObjectMapper OM = new ObjectMapper();
     public static final String MEDIA_TYPE = "application/vnd.docker.distribution.manifest.v2+json";
 
     @Data
@@ -59,4 +61,15 @@ public class GcrManifestV2Schema2 implements GcrManifest
     protected String mediaType = MEDIA_TYPE;
     protected Config config;
     protected List<LayerItem> layers = Collections.emptyList();
+
+    @Override
+    public String toString() {
+        try {
+            return OM.writeValueAsString(this);
+        } catch ( RuntimeException ex ) {
+            throw ex;
+        } catch ( Exception ex ) {
+            throw new RuntimeException(ex);
+        }
+    }
 }

@@ -14,4 +14,5 @@ public class GcrManifestMeta
     // This is the manifest digest, NOT the image digest!
     protected String digest;
     protected String location;
+    protected String mediaType;
 }

@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 // See https://docs.docker.com/registry/spec/manifest-v2-2/
 
@@ -16,6 +17,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class GcrManifestV2Schema2List implements GcrManifest
 {
+    private static ObjectMapper OM = new ObjectMapper();
     public static final String MEDIA_TYPE = "application/vnd.docker.distribution.manifest.list.v2+json";
 
     @Data
@@ -59,4 +61,15 @@ public class GcrManifestV2Schema2List implements GcrManifest
 
     protected String mediaType = MEDIA_TYPE;
     protected List<ManifestItem> manifests = Collections.emptyList();
+
+    @Override
+    public String toString() {
+        try {
+            return OM.writeValueAsString(this);
+        } catch ( RuntimeException ex ) {
+            throw ex;
+        } catch ( Exception ex ) {
+            throw new RuntimeException(ex);
+        }
+    }
 }

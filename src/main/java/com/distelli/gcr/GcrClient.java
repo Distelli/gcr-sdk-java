@@ -37,6 +37,10 @@ import java.util.regex.Matcher;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Collections;
+import java.io.ByteArrayInputStream;
 
 public class GcrClient
 {
@@ -177,6 +181,107 @@ public class GcrClient
         }
     }
 
+    public GcrManifest getManifest(String repository, String reference)
+        throws IOException, GcrException
+    {
+        return getManifest(repository, reference, "*/*");
+    }
+
+    // GET /v2/<name>/manifests/<reference>
+    public GcrManifest getManifest(String repository, String reference, String acceptHeader)
+        throws IOException, GcrException
+    {
+        Request request = new Request.Builder()
+            .get()
+            .header("Accept", acceptHeader)
+            .url(HttpUrl()
+                 .addPathSegments(repository)
+                 .addPathSegment("manifests")
+                 .addPathSegment(reference)
+                 .build())
+            .build();
+
+        try ( Response response = _httpClient.newCall(request).execute() ) {
+            if ( 404 == response.code() ) {
+                return null;
+            }
+            if ( response.code() / 100 == 2 ) {
+                String manifestStr = response.body().string();
+                String mediaType = response.header("Content-Type");
+                return new GcrManifest() {
+                    @Override
+                    public String toString() {
+                        return manifestStr;
+                    }
+                    @Override
+                    public String getMediaType() {
+                        return mediaType;
+                    }
+                };
+            }
+            throw new GcrException(
+                GcrErrorSerializer.deserialize(
+                    readTree(response.body(), response.code())));
+        }
+    }
+
+    // PUT /v2/<name>/manifests/<reference>
+    // reference may be a tag or GcrManifestMeta.digest
+    public GcrManifestMeta putManifest(String repository, String reference, GcrManifest manifest)
+        throws IOException, GcrException
+    {
+        Request request = new Request.Builder()
+            .put(RequestBody.create(MediaType.parse(manifest.getMediaType()),
+                                    manifest.toString()))
+            .url(HttpUrl()
+                 .addPathSegments(repository)
+                 .addPathSegment("manifests")
+                 .addPathSegment(reference)
+                 .build())
+            .build();
+        try ( Response response = _httpClient.newCall(request).execute() ) {
+            if ( response.code() / 100 == 2 ) {
+                return GcrManifestMeta.builder()
+                    .digest(response.header("Docker-Content-Digest"))
+                    .location(response.header("Location"))
+                    .mediaType(manifest.getMediaType())
+                    .build();
+            }
+            throw new GcrException(
+                GcrErrorSerializer.deserialize(
+                    readTree(response.body(), response.code())));
+        }
+    }
+
+    // GET /v2/<repository>/blobs/<digest>
+    public <T> T getBlob(String repository, String digest, GcrBlobReader<T> reader)
+        throws IOException, GcrException
+    {
+        Request request = new Request.Builder()
+            .get()
+            .url(HttpUrl()
+                 .addPathSegments(repository)
+                 .addPathSegment("blobs")
+                 .addPathSegment(digest)
+                 .build())
+            .build();
+        try ( Response response = _httpClient.newCall(request).execute() ) {
+            if ( 404 == response.code() ) {
+                return reader.read(new ByteArrayInputStream(new byte[0]), null);
+            }
+            if ( response.code() / 100 != 2 ) {
+                throw new GcrException(
+                    GcrErrorSerializer.deserialize(
+                        readTree(response.body(), response.code())));
+            }
+            return reader.read(response.body().byteStream(),
+                               GcrBlobMeta.builder()
+                               .digest(digest)
+                               .length(response.body().contentLength())
+                               .build());
+        }        
+    }
+
     // HEAD /v2/<repository>/blobs/<digest>
     public GcrBlobMeta getBlobMeta(String repository, String digest)
         throws IOException, GcrException
@@ -198,7 +303,7 @@ public class GcrClient
             }
             return GcrBlobMeta.builder()
                 .digest(digest)
-                .length(parseLong(response.header("Content-Length")))
+                .length(response.body().contentLength())
                 .build();
         }
     }
@@ -356,33 +461,6 @@ public class GcrClient
         try ( Response response = _httpClient.newCall(request).execute() ) {
             if ( response.code() / 100 == 2 ) return true;
             if ( 404 == response.code() ) return false;
-            throw new GcrException(
-                GcrErrorSerializer.deserialize(
-                    readTree(response.body(), response.code())));
-        }
-    }
-
-    // PUT /v2/<name>/manifests/<reference>
-    // reference may be a tag or GcrManifestMeta.digest
-    public GcrManifestMeta putManifest(String repository, String reference, GcrManifest manifest)
-        throws IOException, GcrException
-    {
-        Request request = new Request.Builder()
-            .put(RequestBody.create(MediaType.parse(manifest.getMediaType()),
-                                    OBJECT_MAPPER.writeValueAsBytes(manifest)))
-            .url(HttpUrl()
-                 .addPathSegments(repository)
-                 .addPathSegment("manifests")
-                 .addPathSegment(reference)
-                 .build())
-            .build();
-        try ( Response response = _httpClient.newCall(request).execute() ) {
-            if ( response.code() / 100 == 2 ) {
-                return GcrManifestMeta.builder()
-                    .digest(response.header("Docker-Content-Digest"))
-                    .location(response.header("Location"))
-                    .build();
-            }
             throw new GcrException(
                 GcrErrorSerializer.deserialize(
                     readTree(response.body(), response.code())));
