@@ -20,7 +20,7 @@ import lombok.AllArgsConstructor;
 public class GcrImageTag
 {
     protected String tag;
-    protected String sha;
+    protected String sha; // The Manifest sha, NOT the image sha.
     protected String layerId;
     protected long created;
 }

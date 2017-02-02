@@ -57,11 +57,7 @@ public class GcrClient
     private OkHttpClient _httpClient;
     private URI _endpoint;
 
-    public Builder builder() {
-        return new Builder();
-    }
-
-    protected static class Builder {
+    public static class Builder {
         private OkHttpClient.Builder _httpClientBuilder = new OkHttpClient.Builder();
         private URI _endpoint;
 
