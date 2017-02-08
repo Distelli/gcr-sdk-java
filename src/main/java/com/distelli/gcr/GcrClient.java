@@ -372,7 +372,7 @@ public class GcrClient
     {
         AtomicLong actualChunkLength = new AtomicLong();
         Request.Builder request = new Request.Builder()
-            .patch(toRequestBody(chunk, chunkLength, actualChunkLength))
+            .patch(toRequestBody(chunk, chunkLength, actualChunkLength, blobUpload.getMediaType()))
             .header("Expect", "100-continue")
             .header("Range", getRangeHeader(blobUpload.getRangeBegin(), chunkLength))
             .url(getUploadLocation(blobUpload, null));
@@ -402,7 +402,7 @@ public class GcrClient
     {
         AtomicLong actualChunkLength = new AtomicLong();
         Request.Builder request = new Request.Builder()
-            .put(toRequestBody(chunk, chunkLength, actualChunkLength))
+            .put(toRequestBody(chunk, chunkLength, actualChunkLength, blobUpload.getMediaType()))
             .header("Expect", "100-continue")
             .header("Range", getRangeHeader(blobUpload.getRangeBegin(), chunkLength))
             .url(getUploadLocation(blobUpload, digest));
@@ -473,7 +473,9 @@ public class GcrClient
         return rangeBegin + "-" + (rangeBegin+chunkLength-1L);
     }
 
-    private RequestBody toRequestBody(InputStream in, Long length, AtomicLong actualLength) {
+    private RequestBody toRequestBody(InputStream in, Long length, AtomicLong actualLength, String mediaTypeStr) {
+        MediaType mediaType = MediaType.parse(
+            (null == mediaTypeStr ) ? "application/octet-stream" : mediaTypeStr);
         return new RequestBody() {
             @Override
             public long contentLength() {
@@ -481,7 +483,7 @@ public class GcrClient
             }
             @Override
             public MediaType contentType() {
-                return MediaType.parse("application/octet-stream");
+                return mediaType;
             }
             @Override
             public void writeTo(okio.BufferedSink sink) throws IOException {

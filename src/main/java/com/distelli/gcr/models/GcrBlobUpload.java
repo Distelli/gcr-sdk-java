@@ -17,4 +17,5 @@ public class GcrBlobUpload
     protected String uploadLocation;
     protected String uploadId;
     protected long rangeBegin;
+    protected String mediaType;
 }
