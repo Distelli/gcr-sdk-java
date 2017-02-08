@@ -2,6 +2,9 @@ package com.distelli.gcr.models;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 
 // This is a marker interface used to denote any manifest
 // that may be uploaded to a Docker Registry. See
@@ -23,10 +26,22 @@ public interface GcrManifest {
      */
     public String toString();
 
-    // private static final Map<String, Class<? extends GcrManifest>> MANIFEST_IMPL = new HashMap<String, Class<? extends GcrManifest>>(){{
-    //         put(GcrManifestV2Schema1.MEDIA_TYPE, GcrManifestV2Schema1.class);
-    //         put(GcrManifestV2Schema1.SIGNED_MEDIA_TYPE, GcrManifestV2Schema1.class);
-    //         put(GcrManifestV2Schema2.MEDIA_TYPE, GcrManifestV2Schema2.class);
-    //         put(GcrManifestV2Schema2List.MEDIA_TYPE, GcrManifestV2Schema2List.class);
-    //     }};
+    /**
+     * A list of sha256:... strings which are the name of the blobs referenced
+     * by this manifest.
+     */
+    public List<String> getReferencedDigests();
+
+    /**
+     * The V2Schmea1 signed manifest MUST be preserved byte-for-byte, so support this:
+     */
+    public default void setToString(String toString) {}
+
+    public static GcrManifest create(String manifestStr, String mediaType) throws IOException {
+        return GcrManifestHelper.create(manifestStr, mediaType);
+    }
+
+    public static String toString(GcrManifest manifest) throws IOException {
+        return GcrManifestHelper.toString(manifest);
+    }
 }

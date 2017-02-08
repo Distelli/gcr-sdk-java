@@ -5,11 +5,13 @@ import lombok.Data;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.AccessLevel;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.stream.Collectors;
 
 // See https://docs.docker.com/registry/spec/manifest-v2-1/
 @Data
@@ -18,46 +20,9 @@ import java.util.regex.Matcher;
 @AllArgsConstructor
 public class GcrManifestV2Schema1 implements GcrManifest
 {
-    private static ObjectMapper OM = new ObjectMapper();
     private static Pattern SIGNATURES_PATTERN = Pattern.compile(",\\s*\"signatures\"\\s*:");
     public static final String MEDIA_TYPE = "application/vnd.docker.distribution.manifest.v1+json";
     public static final String SIGNED_MEDIA_TYPE = "application/vnd.docker.distribution.manifest.v1+prettyjws";
-
-    public static GcrManifestV2Schema1 create(GcrManifest manifest) {
-        String manifestStr = manifest.toString();
-        GcrManifestV2Schema1 result;
-        try {
-            result = OM.readValue(manifestStr, GcrManifestV2Schema1.class);
-        } catch ( RuntimeException ex ) {
-            throw ex;
-        } catch ( Exception ex ) {
-            throw new RuntimeException(ex);
-        }
-        if ( null != result.signatures && result.signatures.size() > 0 ) {
-            Matcher matcher = SIGNATURES_PATTERN.matcher(manifestStr);
-            int matches = 0;
-            while ( matcher.find() ) {
-                matches++;
-            }
-            if ( matches <= 0 ) {
-                throw new IllegalStateException("Expected "+SIGNATURES_PATTERN+" to match");
-            }
-            matcher.reset();
-            StringBuffer sb = new StringBuffer();
-            while ( matcher.find() ) {
-                // Last match:
-                if ( --matches == 0 ) {
-                    matcher.appendReplacement(sb, "");
-                    break;
-                } else {
-                    matcher.appendReplacement(sb, matcher.group());
-                }
-            }
-            sb.append(manifestStr.substring(manifestStr.indexOf(']', matcher.end())+1));
-            result.setPayload(sb.toString());
-        }
-        return result;
-    }
 
     @Data
     @Builder
@@ -77,15 +42,17 @@ public class GcrManifestV2Schema1 implements GcrManifest
 
     @Override @JsonIgnore
     public String getMediaType() {
-        return ( null != signatures && null != payload ) ? SIGNED_MEDIA_TYPE : MEDIA_TYPE;
+        if ( null == toString ) return MEDIA_TYPE;
+        // Kind of hacky here...
+        return SIGNATURES_PATTERN.matcher(toString).find() ?
+            SIGNED_MEDIA_TYPE : MEDIA_TYPE;
     }
 
-    /**
-     * The JSON payload that is signed.
-     */
-    @JsonIgnore
-    public String getPayload() {
-        return payload;
+    @Override
+    public List<String> getReferencedDigests() {
+        return fsLayers.stream()
+            .map((layer) -> layer.getBlobSum())
+            .collect(Collectors.toList());
     }
 
     public static class GcrManifestV2Schema1Builder {
@@ -99,31 +66,23 @@ public class GcrManifestV2Schema1 implements GcrManifest
     protected List<FSLayerItem> fsLayers;
     protected List<HistoryItem> history;
 
-    // Payload that is signed:
-    protected String payload;
-    protected List<JsonNode> signatures;
+    @Getter(AccessLevel.NONE)
+    protected String toString;
 
     public int getSchemaVersion() {
         return 1;
     }
 
+    public void setSchemaVersion(int ignored) {}
+    public void setSignatures(Object ignored) {}
+
     @Override
     public String toString() {
+        if ( null != toString ) {
+            return toString;
+        }
         try {
-            if ( null != payload && null != signatures ) {
-                String prefix = payload;
-                if ( prefix.endsWith("}") ) {
-                    prefix = prefix.substring(0, prefix.length()-1);
-                }
-                return prefix + ",\"signatures\":" + OM.writeValueAsString(signatures) + "}";
-            }
-            if ( null == payload && null == signatures ) {
-                return OM.writeValueAsString(this);
-            }
-            if ( null == signatures ) {
-                return payload;
-            }
-            throw new IllegalStateException("Signatures defined, but no payload is defined!");
+            return GcrManifest.toString(this);
         } catch ( RuntimeException ex ) {
             throw ex;
         } catch ( Exception ex ) {

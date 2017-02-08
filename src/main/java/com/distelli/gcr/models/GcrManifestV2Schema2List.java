@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.stream.Collectors;
 
 // See https://docs.docker.com/registry/spec/manifest-v2-2/
 
@@ -61,6 +62,13 @@ public class GcrManifestV2Schema2List implements GcrManifest
 
     protected String mediaType = MEDIA_TYPE;
     protected List<ManifestItem> manifests = Collections.emptyList();
+
+    @Override
+    public List<String> getReferencedDigests() {
+        return manifests.stream()
+            .map((manifest) -> manifest.getDigest())
+            .collect(Collectors.toList());
+    }
 
     @Override
     public String toString() {

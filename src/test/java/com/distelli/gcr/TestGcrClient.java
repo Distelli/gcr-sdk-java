@@ -150,26 +150,20 @@ public class TestGcrClient {
                 return null;
             });
 
-        GcrManifestV2Schema1 manifestProto = GcrManifestV2Schema1.create(
-            new GcrManifest() {
-                @Override
-                public String getMediaType() {
-                    return GcrManifestV2Schema1.SIGNED_MEDIA_TYPE;
-                }
-                @Override
-                public String toString() {
-                    return manifestStr;
-                }
-            });
-        assertEquals(manifestProto.getArchitecture(), "amd64");
-        assertEquals(manifestProto.toString(), manifestStr);
-        assertEquals(manifestProto.getMediaType(), GcrManifestV2Schema1.SIGNED_MEDIA_TYPE);
-        GcrManifestMeta manifestMeta = client.putManifest(repo.getFullName(), tag, manifestProto);
+        GcrManifest manifest = GcrManifest.create(
+            manifestStr,
+            GcrManifestV2Schema1.SIGNED_MEDIA_TYPE);
+        assertTrue(manifest.getClass().toString(), manifest instanceof GcrManifestV2Schema1);
+        GcrManifestV2Schema1 manifestV2_1 = (GcrManifestV2Schema1)manifest;
+        assertEquals(manifestV2_1.getArchitecture(), "amd64");
+        assertEquals(manifestV2_1.toString(), manifestStr);
+        assertEquals(manifestV2_1.getMediaType(), GcrManifestV2Schema1.SIGNED_MEDIA_TYPE);
+        GcrManifestMeta manifestMeta = client.putManifest(repo.getFullName(), tag, manifestV2_1);
 
         assertNotNull(manifestMeta.getLocation());
         assertNotNull(manifestMeta.getDigest());
 
-        GcrManifest manifest = client.getManifest(repo.getFullName(), tag);
+        manifest = client.getManifest(repo.getFullName(), tag);
         assertNotNull(manifest);
         assertEquals(OM.readTree(manifest.toString()), OM.readTree(manifestStr));
         assertEquals(manifest.getMediaType(), GcrManifestV2Schema1.SIGNED_MEDIA_TYPE);

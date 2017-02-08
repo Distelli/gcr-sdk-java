@@ -83,6 +83,11 @@ public class GcrClient
             return this;
         }
 
+        public Builder endpoint(URI endpoint) {
+            _endpoint = endpoint;
+            return this;
+        }
+
         public Builder gcrRegion(GcrRegion gcrRegion) {
             _endpoint = URI.create(((null == gcrRegion)?GcrRegion.DEFAULT:gcrRegion).getHttpsEndpoint());
             return this;
@@ -202,18 +207,8 @@ public class GcrClient
                 return null;
             }
             if ( response.code() / 100 == 2 ) {
-                String manifestStr = response.body().string();
-                String mediaType = response.header("Content-Type");
-                return new GcrManifest() {
-                    @Override
-                    public String toString() {
-                        return manifestStr;
-                    }
-                    @Override
-                    public String getMediaType() {
-                        return mediaType;
-                    }
-                };
+                return GcrManifest.create(response.body().string(),
+                                          response.header("Content-Type"));
             }
             throw new GcrException(
                 GcrErrorSerializer.deserialize(
