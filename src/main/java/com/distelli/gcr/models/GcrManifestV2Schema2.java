@@ -7,7 +7,9 @@ import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 // NOTE: gcr appears to reject this manifest format with INVALID_MANIFEST, perhaps
 // it will be supported in the future?
@@ -58,15 +60,18 @@ public class GcrManifestV2Schema2 implements GcrManifest
     public int getSchemaVersion() {
         return 2;
     }
+    public void setSchemaVersion(int ignored) {}
 
     protected String mediaType = MEDIA_TYPE;
     protected Config config;
     protected List<LayerItem> layers = Collections.emptyList();
 
+    @JsonIgnore
     @Override
     public List<String> getReferencedDigests() {
-        return layers.stream()
-            .map((layer) -> layer.getDigest())
+        return Stream.concat(Stream.of(config.getDigest()),
+                      layers.stream()
+                      .map((layer) -> layer.getDigest()))
             .collect(Collectors.toList());
     }
 

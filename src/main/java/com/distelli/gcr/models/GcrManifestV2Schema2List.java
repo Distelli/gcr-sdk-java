@@ -3,6 +3,7 @@ package com.distelli.gcr.models;
 import java.util.List;
 import java.util.Collections;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
@@ -59,10 +60,12 @@ public class GcrManifestV2Schema2List implements GcrManifest
     public int getSchemaVersion() {
         return 2;
     }
+    public void setSchemaVersion(int ignored) {}
 
     protected String mediaType = MEDIA_TYPE;
     protected List<ManifestItem> manifests = Collections.emptyList();
 
+    @JsonIgnore
     @Override
     public List<String> getReferencedDigests() {
         return manifests.stream()

@@ -10,6 +10,8 @@ package com.distelli.gcr.serializers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +20,10 @@ public abstract class GcrSerializer
 {
     private static final Logger log = LoggerFactory.getLogger(GcrSerializer.class);
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    static {
+        OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        OBJECT_MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    }
 
     public GcrSerializer()
     {

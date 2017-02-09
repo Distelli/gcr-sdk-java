@@ -48,7 +48,7 @@ public class GcrManifestV2Schema1 implements GcrManifest
             SIGNED_MEDIA_TYPE : MEDIA_TYPE;
     }
 
-    @Override
+    @Override @JsonIgnore
     public List<String> getReferencedDigests() {
         return fsLayers.stream()
             .map((layer) -> layer.getBlobSum())
