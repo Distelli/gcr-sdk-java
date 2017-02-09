@@ -32,6 +32,7 @@ import okhttp3.MediaType;
 import okhttp3.ResponseBody;
 import okhttp3.RequestBody;
 import static java.nio.charset.StandardCharsets.ISO_8859_1;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import com.fasterxml.jackson.core.JsonParser;
@@ -75,7 +76,7 @@ public class GcrClient
                     Request req = chain.request();
                     if ( null != authHeader ) {
                         req = req.newBuilder()
-                            .header("Authorization", creds.getHttpBasicAuthHeader())
+                            .header("Authorization", authHeader)
                             .build();
                     }
                     return chain.proceed(req);
@@ -223,7 +224,7 @@ public class GcrClient
     {
         Request request = new Request.Builder()
             .put(RequestBody.create(MediaType.parse(manifest.getMediaType()),
-                                    manifest.toString()))
+                                    manifest.toString().getBytes(UTF_8)))
             .url(HttpUrl()
                  .addPathSegments(repository)
                  .addPathSegment("manifests")
