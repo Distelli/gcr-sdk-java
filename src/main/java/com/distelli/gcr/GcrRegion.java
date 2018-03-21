@@ -8,6 +8,8 @@
 */
 package com.distelli.gcr;
 
+import java.util.Arrays;
+
 public enum GcrRegion
 {
     DEFAULT("gcr.io"),
@@ -32,13 +34,11 @@ public enum GcrRegion
         return String.format("https://%s", _endpoint);
     }
 
-    public static GcrRegion getRegion(String region)
+    public static GcrRegion getRegion(String endpoint)
     {
-        try {
-            GcrRegion gcrRegion = GcrRegion.valueOf(region.toUpperCase());
-            return gcrRegion;
-        } catch(IllegalArgumentException iae) {
-            return null;
-        }
+        return Arrays.stream(values())
+            .filter((region) -> region._endpoint.equalsIgnoreCase(endpoint))
+            .findFirst()
+            .orElse(null);
     }
 }
