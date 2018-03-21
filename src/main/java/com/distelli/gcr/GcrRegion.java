@@ -8,6 +8,8 @@
 */
 package com.distelli.gcr;
 
+import java.util.Arrays;
+
 public enum GcrRegion
 {
     DEFAULT("gcr.io"),
@@ -32,6 +34,26 @@ public enum GcrRegion
         return String.format("https://%s", _endpoint);
     }
 
+    /**
+     * Get the GcrRegion corresponding to the provided endpoint.
+     *
+     * @param endpoint the endpoint for the region, such as {@code "us.gcr.io"} or {@code "eu.gcr.io"}
+     * @return the GcrRegion, or null if no such region exists
+     */
+    public static GcrRegion getRegionByEndpoint(String endpoint)
+    {
+        return Arrays.stream(values())
+            .filter((region) -> region._endpoint.equalsIgnoreCase(endpoint))
+            .findFirst()
+            .orElse(null);
+    }
+
+    /**
+     * Get the GcrRegion corresponding to the associated short name.
+     *
+     * @param region the short name for the region, such as {@code "us"} or {@code "eu"}
+     * @return the GcrRegion, or null if no such region exists
+     */
     public static GcrRegion getRegion(String region)
     {
         try {
