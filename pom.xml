@@ -84,6 +84,9 @@
             </goals>
           </execution>
         </executions>
+        <configuration>
+          <keyname>7F0397F6A46FD64266AD41B25EA95032A51F2823</keyname>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
